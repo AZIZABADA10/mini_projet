@@ -9,19 +9,19 @@ if (file_exists($file)) {
 }
 
 // Ajouter une tâche
-if (
-    isset($_POST['task']) && !empty($_POST['task']) &&
-    isset($_POST['description']) && !empty($_POST['description']) &&
-    isset($_POST['date_debut']) && isset($_POST['date_fin'])
-) {
-    $tasks[] = [
-        "text" => $_POST['task'],
+if (isset($_POST['task']) && !empty($_POST['task'])) {
+
+    $task = [
+        "title" => $_POST['task'],
         "description" => $_POST['description'],
-        "date_debut" => $_POST['date_debut'],
-        "date_fin" => $_POST['date_fin']
+        "start_date" => $_POST['start_date'],
+        "end_date" => $_POST['end_date'],
+        "created_at" => date("Y-m-d H:i")
     ];
 
-    file_put_contents($file, json_encode($tasks));
+    $tasks[] = $task;
+
+    file_put_contents($file, json_encode($tasks, JSON_PRETTY_PRINT));
     header("Location: index.php");
     exit;
 }
@@ -31,68 +31,128 @@ if (isset($_GET['delete'])) {
     $index = $_GET['delete'];
     unset($tasks[$index]);
     $tasks = array_values($tasks);
-    file_put_contents($file, json_encode($tasks));
+    file_put_contents($file, json_encode($tasks, JSON_PRETTY_PRINT));
     header("Location: index.php");
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<title>Mini Projet PHP - Todo List</title>
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <title>Todo List - Projet PHP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .fade-in {
+            animation: fadeIn .6s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-8">
 
-<div class="max-w-2xl mx-auto bg-white shadow-2xl p-6 rounded-xl">
-<h1 class="text-3xl font-bold text-purple-600 mb-4 text-center">📌 Mini Projet Todo List Avancé</h1>
+<body class="bg-gradient-to-br from-purple-600 to-indigo-700 min-h-screen p-4 sm:p-10">
 
-<form method="POST" class="space-y-4 mb-6">
+    <div class="max-w-3xl mx-auto bg-white shadow-2xl p-8 rounded-[20px] fade-in">
 
-    <input name="task" type="text" placeholder="Nom de la tâche" class="w-full p-2 border rounded-lg" required>
+        <h1 class="text-4xl font-extrabold text-purple-700 mb-8 text-center tracking-wide">
+            ✨ Mini Projet Todo List
+        </h1>
 
-    <textarea name="description" placeholder="Description" class="w-full p-2 border rounded-lg" required></textarea>
+        <!-- Formulaire -->
+        <form method="POST" class="space-y-5 bg-purple-50 p-6 rounded-xl shadow">
 
-    <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label class="text-sm text-gray-600">Date début</label>
-            <input type="date" name="date_debut" class="w-full p-2 border rounded-lg" required>
-        </div>
-        <div>
-            <label class="text-sm text-gray-600">Date fin</label>
-            <input type="date" name="date_fin" class="w-full p-2 border rounded-lg" required>
-        </div>
+            <div>
+                <label class="font-semibold text-gray-700">Titre de la tâche :</label>
+                <input 
+                    name="task" 
+                    type="text" 
+                    placeholder="Ex : Réviser PHP" 
+                    class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition" 
+                    required>
+            </div>
+
+            <div>
+                <label class="font-semibold text-gray-700">Description :</label>
+                <textarea 
+                    name="description"
+                    placeholder="Décrire la tâche..." 
+                    class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition" 
+                    rows="3"
+                    required></textarea>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="font-semibold text-gray-700">Date début :</label>
+                    <input 
+                        name="start_date" 
+                        type="date" 
+                        class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition" 
+                        required>
+                </div>
+
+                <div>
+                    <label class="font-semibold text-gray-700">Date fin :</label>
+                    <input 
+                        name="end_date" 
+                        type="date" 
+                        class="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition" 
+                        required>
+                </div>
+            </div>
+
+            <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg text-lg font-semibold shadow-lg transition">
+                ➕ Ajouter une tâche
+            </button>
+        </form>
+
+        <!-- Liste des tâches -->
+        <h2 class="text-2xl font-bold text-gray-800 mt-10 mb-4">📋 Liste des tâches</h2>
+
+        <ul class="space-y-5">
+            <?php foreach ($tasks as $index => $t): ?>
+                <li class="bg-gray-100 p-5 rounded-xl shadow flex flex-col sm:flex-row justify-between items-start gap-4 fade-in">
+
+                    <div class="flex-1">
+                        <h3 class="text-2xl font-bold text-purple-700 mb-1">
+                            <?= htmlspecialchars($t["title"]) ?>
+                        </h3>
+
+                        <p class="text-gray-700 mb-3">
+                            <?= nl2br(htmlspecialchars($t["description"])) ?>
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                            <p>📅 <strong>Début :</strong> <?= $t["start_date"] ?></p>
+                            <p>⏳ <strong>Fin :</strong> <?= $t["end_date"] ?></p>
+                            <p>🕒 <strong>Ajoutée le :</strong> <?= $t["created_at"] ?></p>
+                        </div>
+                    </div>
+
+                    <a href="?delete=<?= $index ?>" 
+                       class="text-red-600 font-bold px-4 py-2 bg-red-100 rounded-lg hover:bg-red-200 transition shadow">
+                        🗑 Supprimer
+                    </a>
+
+                </li>
+            <?php endforeach; ?>
+        </ul>
     </div>
 
-    <button class="bg-purple-600 text-white px-4 py-2 rounded-lg w-full">Ajouter</button>
-</form>
-
-<ul class="space-y-3">
-<?php foreach ($tasks as $index => $t): ?>
-    <li class="bg-gray-100 p-4 rounded-lg shadow flex justify-between items-start">
-        <div>
-            <h2 class="font-bold text-lg text-purple-700"><?= htmlspecialchars($t['text']) ?></h2>
-            <p class="text-gray-700"><?= htmlspecialchars($t['description']) ?></p>
-            <p class="text-sm text-gray-500 mt-1">📅 Début : <?= $t['date_debut'] ?></p>
-            <p class="text-sm text-gray-500">⏳ Fin : <?= $t['date_fin'] ?></p>
-        </div>
-
-        <a href="?delete=<?= $index ?>" class="text-red-500 font-bold">Supprimer</a>
-    </li>
-<?php endforeach; ?>
-</ul>
-</div>
-
 <script>
-const links = document.querySelectorAll('a[href*="delete"]');
-links.forEach(link => {
-    link.addEventListener('click', function(e) {
-        if (!confirm("Voulez-vous supprimer cette tâche ?")) {
-            e.preventDefault();
-        }
+    const links = document.querySelectorAll('a[href*="delete"]');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!confirm("❗ Voulez-vous vraiment supprimer cette tâche ?")) {
+                e.preventDefault();
+            }
+        });
     });
-});
 </script>
 
 </body>
