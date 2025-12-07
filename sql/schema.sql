@@ -1,0 +1,52 @@
+
+CREATE DATABASE IF NOT EXISTS todo_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE todo_db;
+
+
+-- users
+CREATE TABLE users (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+email VARCHAR(150) NOT NULL UNIQUE,
+password VARCHAR(255) NOT NULL,
+avatar VARCHAR(255) DEFAULT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- tasks
+CREATE TABLE tasks (
+id INT AUTO_INCREMENT PRIMARY KEY,
+user_id INT NOT NULL,
+title VARCHAR(255) NOT NULL,
+description TEXT,
+start_date DATE DEFAULT NULL,
+end_date DATE DEFAULT NULL,
+priority ENUM('low','medium','high') DEFAULT 'medium',
+status ENUM('todo','in_progress','done') DEFAULT 'todo',
+attachment VARCHAR(255) DEFAULT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- tags
+CREATE TABLE tags (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- task_tags (many-to-many)
+CREATE TABLE task_tags (
+task_id INT NOT NULL,
+tag_id INT NOT NULL,
+PRIMARY KEY (task_id, tag_id),
+FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- sample tag
+INSERT IGNORE INTO tags (name) VALUES ('Travail'), ('Perso'), ('Urgent');
